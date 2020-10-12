@@ -43,9 +43,9 @@ consume.imp <-
 
 consume <- lapply(regID, function(reg){consume.dom[[reg]] +  consume.imp[[reg]]})
 
-biofuelfeedstock.mandate <- lapply(regID, function(reg){consume[[reg]] * bioshare[[reg]]  } )
+biofuelfeedstock.mandate <- lapply(regID, function(reg){consume[[reg]] * bioshare[[reg]] / 100  } )
 
-consum.nobiof <- lapply(regID, function(reg){consume[[reg]] * (1- bioshare[[reg]])  } )
+consum.nobiof <- lapply(regID, function(reg){consume[[reg]] * (1- bioshare[[reg]] / 100)  } )
 
 #international import demand
 lapply(unique(basedata.trade$reg.imp), function(reg){

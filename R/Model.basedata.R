@@ -19,7 +19,10 @@ basedata.regmkt.allyear <-
   gather("variable", "value", -c(reg, crop, year)) %>% 
   filter(year %in% study.year) %>% 
   bind_rows(basedata.nlc) %>% 
-  bind_rows(basedata.cropbioshare)
+  bind_rows(basedata.cropbioshare) %>% 
+  mutate(value = if_else(
+    crop == "Soybeans" & reg == "Oceania" & 
+      variable == "pp" & year == 2015, 500, value)) #Oceania soya price was missing $500 was used based on export prices
 
 rm(basedata.nlc, basedata.cropbioshare)
 #unique(basedata.regmkt.allyear$variable)
@@ -65,9 +68,20 @@ basedata.regmkt.allyear %>% filter(variable == "prod") %>%
       mutate(variable = "export") %>% 
       transmute(reg.exp, reg.imp, crop, year, variable, value = imp.Q / 1000) 
   ) -> 
-  basedata.trade.allyear
+  basedata.trade.allyear0
 
+#move intraregional trade to domestic consumption
+basedata.trade.allyear0 %>% 
+  filter(reg.imp == reg.exp) %>% 
+  mutate(variable = "consume.dom") %>% 
+  group_by(reg.imp, reg.exp, crop, year, variable) %>% 
+  summarise(value = sum(value), .groups = "drop") %>% 
+  bind_rows(basedata.trade.allyear0 %>% 
+              filter(variable == "export") %>% 
+              mutate(value = if_else(reg.imp == reg.exp, 0, value))
+  ) -> basedata.trade.allyear
 
+rm(basedata.trade.allyear0)
 #----------
 #Price links
 
