@@ -85,7 +85,7 @@ parameters <- c(1.4638757, -1.5131941,  1.3011367,  1.0088540,  0.8112664,  0.92
 
 parameters <- c(1.4638757, -1.5131941,  0.8,  1.0088540,  0.8112664,  0.9264591,  1.0181305,  1.1276432)
 0.8956173
-
+parameters <-  c(0.842899338046494,-2.63866035674275,0.764285956134445,0.933300081814049,1.10288249294876,1.1479787256978,1.12016302782384,1.25016015004554)
 load(paste0("output/results/", scenname, ".Rdata"))
 parameters <- sol.out[[1]]$par
 
@@ -145,6 +145,15 @@ ggplot(B) +
   geom_point(aes(x = log(obs), y = log(est))) +
   facet_grid(rows = vars(equil), cols = vars(target.yr), scales = "free") +
   geom_abline(intercept = 0, slope = 1) #+  coord_equal()
+
+ggplot(B %>% mutate(Year = as.character(target.yr))) +
+  geom_abline(intercept = 0, slope = 1) + 
+  geom_point(aes(x = log(obs), y = log(est), color = Year), alpha = 0.8) +
+  facet_wrap(~equil, scales = "free") +
+  #scale_x_continuous(expand = c(0, 0)) +
+  #scale_y_continuous(expand = c(0, 0)) +
+  theme_bw() + theme0 + theme_leg +
+  theme(panel.spacing.x=unit(1, "lines"))
 
 
 B %>% mutate(logest = log(est), logobs = log(obs)) %>% 

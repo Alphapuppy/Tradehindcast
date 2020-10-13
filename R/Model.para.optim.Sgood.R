@@ -17,22 +17,22 @@ source("R/Model.basedata.baseyr.R") #Filter base data given base.yr, for initial
 #Test initial values
 #-----------
 (1:length(target.yr.all)) -> targetyrID
-ces.exponent.demand <- parameters[1]
-logit.exponent.land <- parameters[2]
-logit.exponent.regl <- lapply(sectorID, function(crop){parameters[3]})
-logit.exponent.intl <- lapply(sectorID, function(crop){parameters[4]})
+ces.exponent.demand <- ces.demand
+logit.exponent.land <- logit.landsupply
+logit.exponent.regl <- lapply(sectorID, function(crop){parameters[1]})
+logit.exponent.intl <- lapply(sectorID, function(crop){parameters[2]})
 
 #theta.regl is the converging parameter in S2
 if (Scen == 1 | Scen == 2) {
-  if (length(parameters) == 5) {theta.regl <- lapply(targetyrID, function(yr){parameters[5]}) }else
-    if (length(parameters) == 8) {theta.regl <- lapply(targetyrID, function(yr){parameters[5:8][yr]}) } else
-      if (length(parameters) == 4) {theta.regl <- rep(1, length(target.yr.all)) %>% as.list() }
+  if (length(parameters) == 3) {theta.regl <- lapply(targetyrID, function(yr){parameters[3]}) }else
+    if (length(parameters) == 6) {theta.regl <- lapply(targetyrID, function(yr){parameters[3:6][yr]}) } else
+      if (length(parameters) == 2) {theta.regl <- rep(1, length(target.yr.all)) %>% as.list() }
 } else 
   if (Scen == 3) {
-    if (length(parameters) == 5) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
-      lapply(sectorID, function(crop){parameters[c(3,5)][yr]})})}else
-        if (length(parameters) == 8) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
-          lapply(sectorID, function(crop){parameters[c(3,5,6,7,8)][yr]})})}
+    if (length(parameters) == 3) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
+      lapply(sectorID, function(crop){parameters[c(1,3)][yr]})})}else
+        if (length(parameters) == 6) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
+          lapply(sectorID, function(crop){parameters[c(1,3,4,5,6)][yr]})})}
   }
 
 iter = 0
@@ -48,20 +48,20 @@ fn <- function(parameters){
   #-----------
   #Parameter & calibration
   #-----------
-  ces.exponent.demand <- parameters[1]
-  logit.exponent.land <- parameters[2]
-  logit.exponent.regl <- lapply(sectorID, function(crop){parameters[3]})
-  logit.exponent.intl <- lapply(sectorID, function(crop){parameters[4]})
+  #ces.exponent.demand <- ces.demand
+  #logit.exponent.land <- logit.landsupply
+  logit.exponent.regl <- lapply(sectorID, function(crop){parameters[1]})
+  logit.exponent.intl <- lapply(sectorID, function(crop){parameters[2]})
   if (Scen == 1 | Scen == 2) {
-    if (length(parameters) == 5) {theta.regl <- lapply(targetyrID, function(yr){parameters[5]}) }else
-      if (length(parameters) == 8) {theta.regl <- lapply(targetyrID, function(yr){parameters[5:8][yr]}) } else
-        if (length(parameters) == 4) {theta.regl <- rep(1, length(target.yr.all)) %>% as.list() }
+    if (length(parameters) == 3) {theta.regl <- lapply(targetyrID, function(yr){parameters[3]}) }else
+      if (length(parameters) == 6) {theta.regl <- lapply(targetyrID, function(yr){parameters[3:6][yr]}) } else
+        if (length(parameters) == 2) {theta.regl <- rep(1, length(target.yr.all)) %>% as.list() }
   } else 
     if (Scen == 3) {
-      if (length(parameters) == 5) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
-        lapply(sectorID, function(crop){parameters[c(3,5)][yr]})})}else
-          if (length(parameters) == 8) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
-            lapply(sectorID, function(crop){parameters[c(3,5,6,7,8)][yr]})})}
+      if (length(parameters) == 3) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
+        lapply(sectorID, function(crop){parameters[c(1,3)][yr]})})}else
+          if (length(parameters) == 6) {logit.exponent.regl.yr <- lapply(allyrID, function(yr){
+            lapply(sectorID, function(crop){parameters[c(1,3,4,5,6)][yr]})})}
     }
   
   #-----------

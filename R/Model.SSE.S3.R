@@ -3,7 +3,7 @@
 #Parameter & calibration
 #-----------
 land.sw <- lapply(regID, function(reg){logit.sw.cali(area[[reg]], rental[[reg]], logit.exponent.land)}) 
-demand.sw <- lapply(regID, function(reg){logit.sw.cali(consume[[reg]], pc[[reg]], ces.exponent.demand)}) 
+demand.sw <- lapply(regID, function(reg){logit.sw.cali(consum.nobiof[[reg]], pc[[reg]], ces.exponent.demand)}) 
 
 demand.intl.sw <- lapply(regID, function(reg.imp){
   lapply(sectorID, function(crop){
@@ -12,7 +12,7 @@ demand.intl.sw <- lapply(regID, function(reg.imp){
       lapply(regID, function(reg.exp){pimp.reg[[reg.exp]][[reg.imp]][[crop]]}) %>% unlist(),
       logit.exponent.intl[[crop]]) 
   })
-}) 
+})  
 
 lapply(regID, function(reg.imp){
   lapply(sectorID, function(crop){
@@ -39,6 +39,7 @@ lapply(target.yr.all, function(target.yr){
   fn.cropland.supply = target.cropland.supply
   fn.expense = target.expense
   fn.yield = target.yield
+  fn.biofuelfeedstock.mandate = target.biofuelfeedstock.mandate
   
   #Armington parameters; incorporate logit.exponent.regl.yr
   fn.demand.intl.sw = target.demand.intl.sw
@@ -51,7 +52,7 @@ lapply(target.yr.all, function(target.yr){
     }) }) -> fn.demand.regl.sw
   
   source("R/Model.script.R", local = T)
-  xstart <- rep(200,144)
+  xstart <- rep(100,144)
   nleqslv(xstart, dslnex, control=list(btol=.01, maxit = 1000)) -> model.sol #, allowSingular=TRUE
   assign("iter", iter + 1, envir = .GlobalEnv); 
   print(paste0(model.sol[4], "; iter = ",iter))

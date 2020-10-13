@@ -53,7 +53,7 @@ lapply(target.yr.all, function(target.yr){
       }) }) 
   
   source("R/Model.script.R", local = T)
-  xstart <- rep(200,144)
+  xstart <- rep(100,144)
   nleqslv(xstart, dslnex, control=list(btol=.01, maxit = 1000)) -> model.sol #, allowSingular=TRUE
   assign("iter", iter + 1, envir = .GlobalEnv); 
   print(paste0(model.sol[4], "; iter = ",iter))
