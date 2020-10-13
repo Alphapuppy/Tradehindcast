@@ -189,12 +189,12 @@ theme0 <- theme(
   strip.background = element_rect(fill="grey95"),
   strip.text = element_text(size = 16),
   plot.title = element_text(hjust = 0.5,margin=margin(0,0,15,0)),
-  plot.margin = margin(t = 10, r = 15, b = 10, l = 10) #panel.spacing = unit(1, "lines"),
+  plot.margin = margin(t = 10, r = 20, b = 10, l = 10) #panel.spacing = unit(1, "lines"),
 )
 
 theme_leg <- theme(legend.position="right", legend.justification = "center",
                    #legend.position=c(.1,0.7),
-                   legend.title = element_blank(),
+                   #legend.title = element_blank(),
                    legend.key.size = unit(1.5, "cm"),
                    legend.key.height=unit(1.5,"line"),
                    legend.spacing.x = unit(1, 'cm'), #legend.spacing.y = unit(5, 'cm'),

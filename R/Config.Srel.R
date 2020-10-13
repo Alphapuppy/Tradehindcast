@@ -32,8 +32,8 @@ margin.reg.data.name = c("margin.reg.pim_pp.mtax.shock", "margin.reg.pim_pexp.mt
 
 source(paste0("R/Model.para.optim.S",Err,".R"), local = F)
 
-load(paste0("output/results/", scenname, ".Rdata"))
-parameters <- sol.out[[1]]$par
+#load(paste0("output/results/", scenname, ".Rdata"))
+#parameters <- sol.out[[1]]$par
 
 start_time <- Sys.time()
 if (length(parameters) == 5) {
