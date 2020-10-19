@@ -72,7 +72,7 @@ fn <- function(parameters){
   updated.db.equil %>% gather(equil,"value", c(consumption, price)) %>% 
     filter(!(reg.imp == reg.exp & variable == "export")) %>% 
     spread(scenario, value) %>% 
-    transmute(reg.imp, reg.exp, crop, variable, target.yr, equil, logdiff = (log(ref / obs))^2) %>% 
+    transmute(reg.imp, reg.exp, crop, variable, target.yr, equil, logdiff = (log(est / obs))^2) %>% 
     spread(equil, logdiff) %>% 
     filter(is.na(consumption) == F & is.infinite(consumption) == F
            #, is.finite(price)
@@ -82,7 +82,7 @@ fn <- function(parameters){
                 within(rm(scenario, price)) %>% rename(weight = consumption), 
               by = c("reg.imp", "reg.exp", "crop", "variable", "target.yr")) %>% 
     group_by(target.yr) %>% 
-    summarise(wmean.logdist.logw = weighted.mean(logdist, consumption^0.5),
+    summarise(wmean.logdist.logw = weighted.mean(logdist, weight^0.5),
               weight = sum(weight), .groups = "drop") %>%  ungroup() %>% 
     summarise(Err = weighted.mean(wmean.logdist.logw, weight)) %>% 
     pull(Err) -> Error

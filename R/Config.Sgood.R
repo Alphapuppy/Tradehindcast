@@ -29,7 +29,7 @@ if (Scen == 1) {
   (1:length(c(base.yr, target.yr.all))) -> allyrID;
 }
 margin.reg.data.name = c("margin.reg.pim_pp.mtax.shock", "margin.reg.pim_pexp.mtax.shock")[Mrg]
-
+parameters <- para.S2.Y0.good
 source(paste0("R/Model.para.optim.S",Err,".R"), local = F)
 
 start_time <- Sys.time()
@@ -53,7 +53,7 @@ print(end_time - start_time)
 print(scenname)
 
 list(sol, time = end_time - start_time, scenname = scenname) -> sol.out
-save(sol.out, file = paste0("output/results/", scenname, ".Rdata"))
+save(sol.out, file = paste0("output/results/", scenname, "SSE.Rdata"))
 
 
 
