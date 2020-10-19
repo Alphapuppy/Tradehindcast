@@ -54,12 +54,12 @@ DB.consume.dom %>% within(rm(reg.exp)) %>% bind_rows(
   ) -> DB.consume  
 
   
-DB.consume %>% filter(reg.imp == reg_agg[2],
-               crop == crop_agg[4], 
+DB.consume %>% filter(reg.imp == reg_agg[1],
+               crop == crop_agg[2], 
                year == study.year[1]) -> DB2 
 
-DB.consume %>% filter(reg.imp == "Africa",
-               crop == "Wheat", 
+DB.consume %>% filter(reg.imp == "Asia",
+               crop == "Soybeans", 
                year == 1995) -> DB2 
 
 
@@ -125,10 +125,16 @@ ggplot(Weibull.min1) +
   theme(axis.text.x = element_blank()) +
   theme(legend.position = c(0.62, 0.13))  -> Weibull.dist
 
+Weibull.dist +
+  geom_text(data= data.frame(
+    x = c(400,900),  y = c(100,100), source = c("Domestic", "Imported"),
+    label = c("78%", "22%")), aes(x=x, y=y, label = label), size= 5 , fontface="bold", 
+    color = ggsci::pal_npg("nrc")(2) ) -> Weibull.dist1
+
 Write_png(Weibull.dist, "Weibull.dist_Asia_soy", h = 3000, w = 4500)
 #----------------------------
 #trade responses
-theta0 <- c(0.5, 3, 30)
+theta0 <- c(0.1, 3, 30)
 x = seq(0.001, 2, 0.01)
 
 lapply(theta0, function(theta){
@@ -160,7 +166,7 @@ ggplot() +
 Write_png(Armington.response, "Armington.response_Asia_soy", h = 3000, w = 4500)
 #----------------------------
 
-Write_png(ggarrange(Weibull.dist + labs(title = "a. Preference calibration (theta = 3)"), 
+Write_png(ggarrange(Weibull.dist1 + labs(title = "a. Preference calibration (theta = 3)"), 
                     Armington.response + labs(title = "b. Trade responses"),
                     nrow = 1, align = "h"), 
           "Fig1", h = 3000, w = 8000)
@@ -184,17 +190,18 @@ lapply(theta0, function(theta){
       y[5]   <- para.demand*sum(logit.share(p, theta1, para.share.weight1)*p)^elas.demand - demand.regional
       y
     }
-    xstart <- c(1,1, 2, 2, 26)
+    xstart <- c(300,300, 36791, 10604, 26000)
     nleqslv(xstart, dslnex, control=list(btol=.001)) -> sol
     data.frame(
       scale = "fixed",
       theta = theta,
       sigma = sigma,
       p.ratio = sol$x[2] / sol$x[1],
+      q.ratio = sol$x[4] / sol$x[3],
       t.ratio = (para.share.weight ^ (1/sigma))[2] / (para.share.weight ^ (1/sigma))[1]  )
   }) %>% bind_rows() %>% 
     bind_rows(
-      lapply(seq(theta, 100, .5), function(sigma){
+      lapply(seq(theta, 120, .5), function(sigma){
         
         dslnex <- function(x, theta1 = sigma, para.share.weight1 = para.share.weight ^ (theta/sigma)) {
           y <- numeric(5)
@@ -207,46 +214,55 @@ lapply(theta0, function(theta){
           y[5]   <- para.demand*sum(logit.share(p, theta1, para.share.weight1)*p)^elas.demand - demand.regional
           y
         }
-        xstart <- c(100,100, 16, 20, 26)
+        xstart <- c(300,300, 36791, 10604, 260000)
         nleqslv(xstart, dslnex, control=list(btol=.001)) -> sol
         data.frame(
           scale = "sigma",
           theta = theta,
           sigma = sigma,
           p.ratio = sol$x[2] / sol$x[1],
+          q.ratio = sol$x[4] / sol$x[3],
           t.ratio = (para.share.weight ^ (theta/sigma))[2] / (para.share.weight ^ (theta/sigma))[1]  )
       }) %>% bind_rows()
     )
 }) %>% bind_rows() -> df1
 
 df1$theta <-  factor(df1$theta, levels = theta0, labels = paste0(expression(theta), " = ", theta0))  
-df1$scale <-  factor(df1$scale, levels = c("fixed", "sigma"), labels = c("shift", "shift & scale"))  
+df1$scale <-  factor(df1$scale, levels = c("fixed", "sigma"), labels = c("Bias erosion", "Full homogenization"))  
+
+
+ggplot(df1) +
+  geom_line(aes(x = t.ratio, y = q.ratio, color = as.character(theta), linetype = scale ), size = 1.2) +
+  geom_hline(yintercept = data.q[2]/ data.q[1], linetype = 2, size = 1) +
+  theme_bw() + theme0 + theme_leg
 
 ggplot(df1) +
   geom_abline(intercept = 0, slope = 1, linetype = 1, size = 1.05) +
   geom_vline(xintercept = 1, linetype = 1, size = 1.05) +
   geom_hline(yintercept = 1, linetype = 1, size = 1.05) +
-  geom_hline(yintercept = data.p[2]/ data.p[1], linetype = 5, size = 1) +
   geom_line(aes(x = t.ratio, y = p.ratio, color = as.character(theta), linetype = scale ), size = 1.2) +
-  geom_point(data = df1 %>% filter(sigma == 1, scale == "shift"),
+  geom_point(data = df1 %>% filter(sigma == 1, scale == "Bias erosion"),
     aes(x = t.ratio, y = p.ratio,  fill = as.character(theta)), color = "black", size = 2.5, shape = 21, stroke = 1.5) +
   labs(x = "Preference parameter ratio (imported / domestic)",  #in consumption 
        y = "Price ratio (imported / domestic)") +  #between imported and domestic products
-  scale_x_continuous(expand = c(0, 0), limits = c(0, 2)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 2)) +
-  ggsci::scale_color_npg(name = "Armington parameter" ) +
+  scale_x_continuous(expand = c(0,0), limits = c(0, 1.25)) +
+  scale_y_continuous(limits = c(0.7, 1.2)) +
+  ggsci::scale_color_npg(name = "Price responses" ) +
   ggsci::scale_fill_npg(name = "Calibration points") +
-  scale_linetype_manual(name = "Integration path", values = c(5, 1)) + 
+  scale_linetype_manual(name = "Integration scenario", values = c(5, 1)) + 
   theme_bw() + theme0 + theme_leg +
   guides(fill = guide_legend(order = 1), col = guide_legend(order = 2)) +
-  theme(legend.position = "right") -> Armington.t.shock ;Armington.t.shock
+  theme(legend.position = "right") -> Armington.t.shock ;  
 
-Write_png(Armington.t.shock, "Armington.t.shock", h = 4000, w = 4500)
+Armington.t.shock +
+  annotate("segment", x = 0, xend = data.p[2]/ data.p[1], y = data.p[2]/ data.p[1], yend = data.p[2]/ data.p[1], 
+           color = "black", size = 1, alpha=0.9, linetype = 2) -> Armington.t.shock1
+
+Write_png(Armington.t.shock1, "Armington.t.shock.Asiasoy", h = 3500, w = 6000)
 
 
-
-theta = 5
-sigma = 10
+theta = 3
+sigma = 3
 dslnex <- function(x, theta1 = theta, para.share.weight1 = para.share.weight ^ (1/sigma)) {
   y <- numeric(5)
   p <- x[1:2]
@@ -285,13 +301,89 @@ data.frame(
 
 
 
+
+
+DB.consume.dom %>% bind_rows(
+  DB.consume.trade %>% 
+    filter(!reg.imp == reg.exp) %>% 
+    group_by(reg.imp, reg.exp, crop, year, variable) %>% 
+    summarise(imp.P = weighted.mean(pim.reg, imp.Q), 
+              imp.Q = sum(imp.Q), .groups = "drop")
+) -> DB.consume.bilateral 
+
+write.csv(DB.consume.bilateral %>% within(rm(imp.P)) %>% 
+  spread(year, imp.Q) %>% filter(`1995` == 0),
+"output/extensive.margin.ghost.csv")
+
+
+
+
+DB.consume.bilateral$reg.exp <-  factor(DB.consume.bilateral$reg.exp, levels = reg_agg)  
+DB.consume.bilateral$reg.imp <-  factor(DB.consume.bilateral$reg.imp, levels = reg_agg)  
+
+c = "Soybeans"
+for (c in crop_agg) {
+ggplot(DB.consume.bilateral %>% filter(crop == c #, year %in% c(1995)
+                                       )) +
+  geom_path(aes(x = log(imp.Q), y = log(imp.P), group = reg.imp, color = reg.imp), 
+            linetype = 1, size = 1, alpha = 0.8,
+            arrow = arrow(angle = 18, length= unit(0.1,"inches"), type = "closed") ) +
+  geom_point(aes(x = log(imp.Q), y = log(imp.P), fill = reg.imp), size = 2.5, shape = 21,
+              stroke = 0.8, alpha = 0.6) +
+  facet_grid(cols = vars(reg.imp), rows = vars(reg.exp)) +
+  ggsci::scale_fill_npg(name = "Consuming region" ) +
+  ggsci::scale_color_npg(name = "Consuming region" ) +
+  scale_x_continuous(breaks = seq(-5, 10, 5), limits = c(-9, 12) ) +
+  scale_y_continuous(breaks = c(5.5, 6.5), limits = c(4.9, 7) ) +
+  labs(x = "Log(quantity)", y = "Log(price)") +
+  theme_bw() + theme0 + theme_leg -> A
+
+Write_png(A, paste0("EQ_1995",c), h = 5500, w = 10000)
+
+}
+
+ggplot(DB.consume.bilateral %>% filter(!year %in% c(1995)) 
+       ) +
+  geom_point(aes(x = log(imp.Q), y = log(imp.P)),  fill = "gray", size = 3, shape = 21,
+             stroke = 0.8, alpha = 0.9) +
+  ggsci::scale_fill_npg(name = "Source" ) +
+  ggsci::scale_color_npg(name = "Source" ) +
+  #scale_x_continuous(breaks = seq(-5, 10, 5), limits = c(-9, 12) ) +
+  #scale_y_continuous(breaks = c(5.5, 6.5), limits = c(4.9, 7) ) +
+  labs(x = "Log(quantity)", y = "Log(price)") +
+  theme_bw() + theme0 + theme_leg -> A
+
+ggplot(DB.consume.bilateral) +
+  geom_point(aes(x = log(imp.Q), y = log(imp.P), fill = as.character(year)), 
+             shape = 21, stroke = 0.5, alpha = 0.8) +
+  #facet_wrap(~year) + rows = vars(crop),
+  #facet_grid(cols = vars(reg.imp)) +
+  ggsci::scale_color_npg(name = "Price responses" ) +
+  labs(x = "Log(quantity)", 
+       y = "Log(price)") +
+  theme_bw() + theme0 + theme_leg 
+
+ggplot(DB.consume.bilateral %>% filter(year == 1995)) +
+  geom_point(aes(x = log(imp.Q), y = log(imp.P), fill = variable), 
+             shape = 21, stroke = 0.5, alpha = 0.8) +
+  #facet_wrap(~year) + rows = vars(crop),
+  facet_grid(cols = vars(reg.imp)) +
+  ggsci::scale_color_npg(name = "Price responses" ) +
+  labs(x = "Log(quantity)", 
+       y = "Log(price)") +
+  theme_bw() + theme0 + theme_leg 
+
+
+
+
+
 #------------------------------------------
 fontfamily = "Arial"
 windowsFonts(Arial=windowsFont("TT Arial"))
 theme0 <- theme(
   #panel.grid.minor = element_line(size = 0.1, linetype = 2,colour = "grey30"),
-  panel.grid.major = element_line(size = 0.1, linetype = 2,colour = "grey30"),
-  #panel.grid.major = element_blank(), 
+  #panel.grid.major = element_line(size = 0.1, linetype = 2,colour = "grey30"),
+  panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   panel.border = element_rect(colour = "black", size=1),
   text = element_text(family= fontfamily, size = 15),

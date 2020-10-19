@@ -70,6 +70,19 @@ basedata.regmkt.allyear %>% filter(variable == "prod") %>%
   ) -> 
   basedata.trade.allyear0
 
+basedata.trade.allyear0 %>% 
+  filter(!crop %in% c("Others", "Rapeseed")) %>%
+  filter(crop == "Rice") %>% 
+  group_by(year, variable) %>% 
+  summarise(value = sum(value), .groups = "drop") %>% 
+  ungroup() %>% 
+  filter(year %in% c(1995, 2015)) %>% 
+  spread(variable, value) %>% 
+  mutate(total = rowSums(.[-1])) %>% 
+  gather(variable, value, -year) %>% 
+  spread(year, value) %>% mutate(change = `2015` / `1995` -1)
+
+
 #move intraregional trade to domestic consumption
 basedata.trade.allyear0 %>% 
   filter(reg.imp == reg.exp) %>% 

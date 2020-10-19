@@ -103,8 +103,9 @@ updated.db.equil %>% gather(equil,"value", c(consumption, price)) %>%
   filter_if(is.numeric, is.finite) %>% 
   group_by(target.yr, equil) %>% 
   summarise(
-    Err = weighted.mean(PE, w = consumption),
+    Err = weighted.mean(PE, w = log(1+consumption)),
     consumption = sum(consumption), .groups = 'drop') %>% ungroup() %>%
+  group_by(equil) %>% 
   summarise(Err = weighted.mean(Err, consumption)) 
 #-> Ep30.2p0
 print(Err1)
@@ -167,11 +168,37 @@ B %>% mutate(logest = log(est), logobs = log(obs)) %>%
   left_join(updated.db.equil %>% filter(scenario == "obs") %>% 
               within(rm(scenario, price)) %>% rename(weight = consumption), 
             by = c("reg.imp", "reg.exp", "crop", "variable", "target.yr")) -> C
+
+B %>% mutate(logest = log(est/ref), logobs = log(obs/ref)) %>% 
+  filter(is.finite(logest), is.finite(logobs)) %>% 
+  left_join(updated.db.equil %>% filter(scenario == "obs") %>% 
+              within(rm(scenario, price)) %>% rename(weight = consumption), 
+            by = c("reg.imp", "reg.exp", "crop", "variable", "target.yr")) -> C
   
+summary(lm(logest ~ logobs , data = C , weights = log(weight + 1)))
+summary(lm(logest ~ logobs , data = C  ))
+summary(lm(logest ~ logobs , data = C, weights = weight  ))
+summary(lm(logest ~ logobs , data = C %>% filter(equil == "price"), weights = log(weight + 1)))
+
 summary(lm(logest ~ logobs , data = C %>% filter(equil == "consumption"), weights = weight))
-summary(lm(logest ~ logobs , data = C %>% filter(equil == "consumption") ))
 summary(lm(logest ~ logobs , data = C %>% filter(equil == "price"), weights = weight))
 
+
+ggplot(C %>% mutate(Year = as.character(target.yr))) +
+  geom_abline(intercept = 0, slope = 1) + 
+  geom_point(aes(x = logobs, y = logest, color = Year), alpha = 0.8) +
+  facet_wrap(~equil, scales = "free") +
+  theme_bw() + theme0 + theme_leg +
+  theme(panel.spacing.x=unit(1, "lines"))
+
+ggplot(C) +
+  geom_point(aes(x = logobs, y = logest)) +
+  facet_grid(rows = vars(equil), cols = vars(target.yr), scales = "free") +
+  geom_abline(intercept = 0, slope = 1) #+  coord_equal()
+
+
+
+#%>% filter(equil == "consumption")
 
 updated.db.equil %>% gather(equil,"value", c(consumption, price)) %>% 
   filter(!(reg.imp == reg.exp & variable == "export")) %>% 

@@ -35,6 +35,13 @@ lapply(regID, function(reg.imp){
 lapply(target.yr.all, function(target.yr){
   #find targeted variables with historic shocks as drivers to the model changes
   source("R/Model.target.R", local = T) 
+  
+  lapply(unique(basedata.pricelink$reg.exp), function(region.exp){
+    pull.list(basedata.pricelink %>% 
+                filter(variable == "margin.reg.pim_pexp", reg.exp == region.exp) ,
+              group = "reg.imp", val.rm = c("variable", "crop"))
+  }) -> target.margin.reg.shock
+  
   fn.margin.reg.shock = target.margin.reg.shock
   fn.cropland.supply = target.cropland.supply
   fn.expense = target.expense

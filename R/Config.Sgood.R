@@ -14,7 +14,7 @@ logit.landsupply = -1
 base.yr = 1995;
 #Define initial values for parameters
 if (Scen == 1) {
-  parameters <- c(ces.demand, logit.landsupply, 2, 4)[c(-1,-2)]; 
+  parameters <- c(ces.demand, logit.landsupply, 1, 1)[c(-1,-2)]; 
   scenario.path.SSE = paste0("R/Model.SSE.S1_2.R"); #Model.SSE.S1.R would be the same with Model.SSE.S2.R
   if (Yr == 0) {target.yr.all <- c(2000, 2005, 2010, 2015)} else
   {target.yr.all <- c(2000, 2005, 2010, 2015)[Yr]} 
@@ -41,12 +41,12 @@ if (length(parameters) == 3) {
           if (length(parameters) == 6) {
             optim(parameters, fn, method = "L-BFGS-B",
                   lower = c(0.1, 0.1, rep(0.6, 4)),
-                  upper = c(3, 8, rep(5, 4)),
+                  upper = c(3, 8, rep(4, 4)), hessian = T,
                   control=list(pgtol=0.0001, maxit = 1000)) -> sol} else 
                     if (length(parameters) == 2) {
                       optim(parameters, fn, method = "L-BFGS-B", 
                             lower = c(0.1, 0.1), 
-                            upper = c(5, 10),
+                            upper = c(5, 10), hessian = T,
                             control=list(pgtol=0.0001, maxit = 1000)) -> sol}
 end_time <- Sys.time()
 print(end_time - start_time)
