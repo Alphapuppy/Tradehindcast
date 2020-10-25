@@ -8,7 +8,7 @@ Yr = as.numeric(args[2])
 Mrg = as.numeric(args[3])
 Err = as.character(args[4])
 base.yr = as.numeric(args[5]);
-scenname = paste0("para.S",Scen,".Y",Yr,".",Err,".M",Mrg); print(scenname)
+scenname = paste0("para.S",Scen,".Y",Yr,".",Err,".M",Mrg, ".B", base.yr); print(scenname)
 ces.demand = 1
 logit.landsupply = -1
 
@@ -16,7 +16,7 @@ study.yr <- c(1995, 2000, 2005, 2010, 2015)
 
 #Define initial values for parameters
 if (Scen == 1) {
-  parameters <- c(ces.demand, logit.landsupply, 1, 1)[c(-1,-2)]; 
+  parameters <- c(ces.demand, logit.landsupply, 1.2, 1.2)[c(-1,-2)]; 
   scenario.path.SSE = paste0("R/Model.SSE.S1_2.R"); #Model.SSE.S1.R would be the same with Model.SSE.S2.R
   if (Yr == 0) {target.yr.all <- setdiff(study.yr, base.yr)} else
   {target.yr.all <- setdiff(study.yr, base.yr)[Yr]} 
@@ -31,7 +31,7 @@ if (Scen == 1) {
   (1:length(c(base.yr, target.yr.all))) -> allyrID;
 }
 margin.reg.data.name = c("margin.reg.pim_pp.mtax.shock", "margin.reg.pim_pexp.mtax.shock")[Mrg]
-#parameters <- c(3,6)
+#parameters <- c(1,1, .8)
 source(paste0("R/Model.para.optim.S",Err,".R"), local = F)
 
 start_time <- Sys.time()
@@ -42,7 +42,7 @@ if (length(parameters) == 3) {
         control=list(pgtol=0.0001, maxit = 1000)) -> sol} else 
           if (length(parameters) == 6) {
             optim(parameters, fn, method = "L-BFGS-B",
-                  lower = c(0.1, 0.1, rep(0.6, 4)),
+                  lower = c(0.1, 0.1, rep(0.4, 4)),
                   upper = c(3, 8, rep(4, 4)), hessian = T,
                   control=list(pgtol=0.0001, maxit = 1000)) -> sol} else 
                     if (length(parameters) == 2) {
