@@ -123,7 +123,7 @@ ggplot(Weibull.min1) +
   scale_shape_manual(name = "Source", values = c(1, 2)) +
   theme_bw() + theme0 + theme_leg +
   theme(axis.text.x = element_blank()) +
-  theme(legend.position = c(0.62, 0.13))  -> Weibull.dist
+  theme(legend.position = c(0.62, 0.13))  -> Weibull.dist ; Weibull.dist
 
 Weibull.dist +
   geom_text(data= data.frame(
@@ -131,7 +131,7 @@ Weibull.dist +
     label = c("78%", "22%")), aes(x=x, y=y, label = label), size= 5 , fontface="bold", 
     color = ggsci::pal_npg("nrc")(2) ) -> Weibull.dist1
 
-Write_png(Weibull.dist, "Weibull.dist_Asia_soy", h = 3000, w = 4500)
+Write_png(Weibull.dist1, "Weibull.dist_Asia_soy", h = 3000, w = 4500)
 #----------------------------
 #trade responses
 theta0 <- c(0.1, 3, 30)
@@ -318,8 +318,11 @@ write.csv(DB.consume.bilateral %>% within(rm(imp.P)) %>%
 
 
 
+
 DB.consume.bilateral$reg.exp <-  factor(DB.consume.bilateral$reg.exp, levels = reg_agg)  
 DB.consume.bilateral$reg.imp <-  factor(DB.consume.bilateral$reg.imp, levels = reg_agg)  
+DB.consume.bilateral$crop <-  factor(DB.consume.bilateral$crop, levels = crop_agg)  
+
 
 c = "Soybeans"
 for (c in crop_agg) {
@@ -372,6 +375,34 @@ ggplot(DB.consume.bilateral %>% filter(year == 1995)) +
   labs(x = "Log(quantity)", 
        y = "Log(price)") +
   theme_bw() + theme0 + theme_leg 
+
+
+##########################################
+#base data
+ggplot(DB.consume.bilateral) + 
+  geom_bar(aes(x = year, y = imp.Q, fill = reg.exp), 
+           color = "black", alpha = 0.85, stat="identity",position= "fill") +
+  ggsci::scale_fill_npg(name = "Source") +
+  labs(x = "Year", y = "Volume share") +
+  facet_grid(rows = vars(crop),
+             cols = vars(reg.imp), scales = "free") +
+  scale_y_continuous(breaks = c(0.25, 0.5, 0.75)) +
+  theme_bw() + theme0 + theme_leg -> scen.share.obs
+
+Write_png(scen.share.obs, paste0("good/base.share.obs"), h = 6000, w = 11000)
+
+
+ggplot(DB.consume.bilateral %>% mutate(imp.Q = imp.Q / 1000)) + 
+  geom_bar(aes(x = year, y = imp.Q, fill = reg.exp), 
+           color = "black", alpha = 0.85, stat="identity",position= "stack") +
+  ggsci::scale_fill_npg(name = "Source") +
+  labs(x = "Year", y = "Volume (Million tons)") +
+  facet_grid(rows = vars(crop),
+             cols = vars(reg.imp), scales = "free") +
+  theme_bw() + theme0 + theme_leg -> scen.share.obs1
+
+Write_png(scen.share.obs1, paste0("good/base.share.obs1"), h = 6000, w = 11000)
+  
 
 
 

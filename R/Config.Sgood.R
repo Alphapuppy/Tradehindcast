@@ -1,35 +1,37 @@
 #!/usr/bin/env Rscript
 #args = commandArgs(trailingOnly=TRUE)
-args = c(2,0,2, "good") #scenario, year, margin data
+args = c(2,0,2, "good", 2015) #scenario, year, margin data
 #-----------------
 #config
 Scen = as.numeric(args[1])
 Yr = as.numeric(args[2])
 Mrg = as.numeric(args[3])
 Err = as.character(args[4])
+base.yr = as.numeric(args[5]);
 scenname = paste0("para.S",Scen,".Y",Yr,".",Err,".M",Mrg); print(scenname)
 ces.demand = 1
 logit.landsupply = -1
 
-base.yr = 1995;
+study.yr <- c(1995, 2000, 2005, 2010, 2015)
+
 #Define initial values for parameters
 if (Scen == 1) {
   parameters <- c(ces.demand, logit.landsupply, 1, 1)[c(-1,-2)]; 
   scenario.path.SSE = paste0("R/Model.SSE.S1_2.R"); #Model.SSE.S1.R would be the same with Model.SSE.S2.R
-  if (Yr == 0) {target.yr.all <- c(2000, 2005, 2010, 2015)} else
-  {target.yr.all <- c(2000, 2005, 2010, 2015)[Yr]} 
+  if (Yr == 0) {target.yr.all <- setdiff(study.yr, base.yr)} else
+  {target.yr.all <- setdiff(study.yr, base.yr)[Yr]} 
 } else if (Scen == 2 ) {
   scenario.path.SSE = paste0("R/Model.SSE.S1_2.R");
-  if (Yr == 0) {target.yr.all <- c(2000, 2005, 2010, 2015); parameters <- c(ces.demand, logit.landsupply, 1.2, 1.2, seq(1.1, 1.4, 0.1))[c(-1,-2)]} else
-  {target.yr.all <- c(2000, 2005, 2010, 2015)[Yr]; parameters <- c(ces.demand, logit.landsupply, 3, 6, 1)[c(-1,-2)]} 
+  if (Yr == 0) {target.yr.all <- setdiff(study.yr, base.yr); parameters <- c(ces.demand, logit.landsupply, 1.2, 1.2, rep(1, 4))[c(-1,-2)]} else
+  {target.yr.all <- setdiff(study.yr, base.yr)[Yr]; parameters <- c(ces.demand, logit.landsupply, 3, 6, 1)[c(-1,-2)]} 
 } else if (Scen == 3) {
   scenario.path.SSE = paste0("R/Model.SSE.S3.R");
-  if (Yr == 0) {target.yr.all <- c(2000, 2005, 2010, 2015); parameters <- c(ces.demand, logit.landsupply, 0.82, 1, c(0.9, 1, 1.08, 1.13))[c(-1,-2)]} else
-  {target.yr.all <- c(2000, 2005, 2010, 2015)[Yr]; parameters <- c(ces.demand, logit.landsupply, 3, 6, 3)[c(-1,-2)]} 
+  if (Yr == 0) {target.yr.all <- setdiff(study.yr, base.yr); parameters <- c(ces.demand, logit.landsupply, 0.82, 1, c(0.9, 1, 1.08, 1.13))[c(-1,-2)]} else
+  {target.yr.all <- setdiff(study.yr, base.yr)[Yr]; parameters <- c(ces.demand, logit.landsupply, 3, 6, 3)[c(-1,-2)]} 
   (1:length(c(base.yr, target.yr.all))) -> allyrID;
 }
 margin.reg.data.name = c("margin.reg.pim_pp.mtax.shock", "margin.reg.pim_pexp.mtax.shock")[Mrg]
-parameters <- para.S2.Y0.good
+#parameters <- c(3,6)
 source(paste0("R/Model.para.optim.S",Err,".R"), local = F)
 
 start_time <- Sys.time()
